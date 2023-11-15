@@ -14,12 +14,11 @@ function ChatPage() {
   useEffect(() => {
     console.log(state);
     if (state === null || state === undefined) {
-      console.log("asdasd");
       navigate("/login");
     } else {
       setRenderPage(true);
     }
-  });
+  }, [navigate, state]);
   return (
     <div className="App">
       {renderPage ? (

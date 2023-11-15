@@ -21,12 +21,44 @@ const AddComponent = () => {
   const leaveChannel = sendbirdSelectors.getLeaveGroupChannel(globalStore);
   const getGroupChannel = sendbirdSelectors.getGetGroupChannel(globalStore);
 
+  const [createChannelData, setCreateChannelData] = useState({
+    channelName: "",
+    userId: "",
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setCreateChannelData({
+      ...createChannelData,
+      [name]: value,
+    });
+  };
+
   return (
     <>
+      <div>
+        <label>Channel Name:</label>
+        <input
+          type="text"
+          name="channelName"
+          value={createChannelData.channelName}
+          onChange={handleInputChange}
+        />
+        <label>USER ID:</label>
+        <input
+          type="text"
+          name="userId"
+          value={createChannelData.userId}
+          onChange={handleInputChange}
+        />
+      </div>
       <button
         onClick={() => {
           // For TypeScript, use const params: GroupChannelCreateParams = {};
-          const params = { name: "CREATEDDDD", invitedUserIds: ["dev.cmark"] };
+          const params = {
+            name: createChannelData.channelName,
+            invitedUserIds: [createChannelData.userId],
+          };
           createChannel(params)
             .then((channel) => {
               setChannelUrl(channel._url);
@@ -94,64 +126,9 @@ function CustomizedApp({}) {
   return (
     <div className="channel-wrap">
       <div className="channel-list">
-        <ChannelListProvider
-          onBeforeCreateChannel={(users) => {
-            console.log(users);
-            // const params = {
-            //   name: "CREATEDDDD",
-            //   invitedUserIds: users,
-            // };
-            // createChannel(params)
-            //   .then((channel) => {
-            //     setCurrentChannel(channel);
-            //     // console.log(channel);\
-            //     getGroupChannel(channel._url)
-            //       .then((channel) => {
-            //         console.log(channel);
-            //       })
-            //       .catch((error) => console.warn(error));
-            //   })
-            //   .catch((error) => console.warn(error));
-          }}
-          renderHeader={AddComponent}
-          onChannelSelect={(channel) => {
-            setCurrentChannel(channel);
-            // const globalStore = useSendbirdStateContext();
-
-            // const query = channel.members;
-            // console.log(query);
-            // console.log(channelListState);
-          }}
-          allowProfileEdit={true}
-          onProfileEditSuccess={(user) => console.log(user)}
-          onThemeChange={(theme) => console.log(theme)}
-        >
-          <ChannelListUI />
-        </ChannelListProvider>
-
-        {/* <ChannelList
-          onChannelSelect={(channel) => {
-            setCurrentChannel(channel);
-
-            // const query = channel.members;
-            // console.log(query);
-            // console.log(channelListState);
-          }}
-          allowProfileEdit={true}
-          disableUserProfile={true}
-          onProfileEditSuccess={(user) => {
-            console.log(user);
-          }}
-          onBeforeCreateChannel={(e) => {
-            console.log(e);
-          }}
-          renderUserProfile={Profile}
-        ></ChannelList> */}
-
-        {/* <div style={{ width: "320px", height: "500px" }}>
+        <div style={{ width: "320px", height: "500px" }}>
           <AddComponent></AddComponent>
           <ChannelList
-            
             onChannelSelect={(channel) => {
               setCurrentChannel(channel);
 
@@ -164,7 +141,7 @@ function CustomizedApp({}) {
               console.log(user);
             }}
           />
-        </div> */}
+        </div>
       </div>
       <div className="channel-chat">
         <Channel

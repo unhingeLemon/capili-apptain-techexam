@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import client from "./config/db.js";
 import loginRoutes from "./routes/loginRoutes.js";
+import channelRoutes from "./routes/channelRoutes.js";
 import cors from "cors";
 
 dotenv.config();
@@ -18,6 +19,7 @@ app.use(
 app.use(cors());
 
 app.use("/api/auth", loginRoutes);
+app.use("/api/channel", channelRoutes);
 
 app.listen(
   8080,

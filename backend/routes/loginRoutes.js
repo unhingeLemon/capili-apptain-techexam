@@ -13,35 +13,48 @@ const router = express.Router();
 router.post("/register", async (req, res) => {
   try {
     const { username, password, nickname } = req.body;
-    const userId = username;
-    bcrypt.hash(password, 10, function (err, hash) {
-      if (err) console.log(err);
-      const insertUserQuery = `
+    if (
+      username === undefined ||
+      password === undefined ||
+      nickname === undefined ||
+      username === null ||
+      password === null ||
+      nickname === null
+    ) {
+      res
+        .status(400)
+        .json({ error: "One or more required properties are missing." });
+    } else {
+      const userId = username;
+      bcrypt.hash(password, 10, function (err, hash) {
+        if (err) console.log(err);
+        const insertUserQuery = `
             INSERT INTO users (userId, password,nickname )
             VALUES ('${userId}', '${hash}', '${nickname}');
         `;
 
-      db.query(insertUserQuery, async (err, result) => {
-        if (err) {
-          console.error("Error inserting user:", err);
-          res.status(400).json({ message: "Error inserting user: " + err });
-        } else {
-          console.log("User inserted successfully");
-          const sendBirdResult = await registerToSendBird(
-            userId,
-            nickname,
-            req,
-            res
-          );
-          if (sendBirdResult === undefined) {
-            res.status(400).json({ message: "User Already Exist" });
+        db.query(insertUserQuery, async (err, result) => {
+          if (err) {
+            console.error("Error inserting user:", err);
+            res.status(400).json({ message: "Error inserting user: " + err });
           } else {
-            console.log(sendBirdResult);
-            res.status(200).json({ message: "User inserted successfully" });
+            console.log("User inserted successfully");
+            const sendBirdResult = await registerToSendBird(
+              userId,
+              nickname,
+              req,
+              res
+            );
+            if (sendBirdResult === undefined) {
+              res.status(400).json({ message: "User Already Exist" });
+            } else {
+              console.log(sendBirdResult);
+              res.status(200).json({ message: "User inserted successfully" });
+            }
           }
-        }
+        });
       });
-    });
+    }
   } catch (err) {
     console.error(err.message);
     res.status(500).sendStatus("Server Error");
@@ -53,35 +66,48 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
-    const userId = username;
 
-    const selectUserQry = `
-            SELECT * FROM users WHERE userid='${userId}' ;
-        `;
+    // Check if any of the required properties is undefined or null
+    if (
+      username === undefined ||
+      password === undefined ||
+      username === null ||
+      password === null
+    ) {
+      res
+        .status(400)
+        .json({ error: "One or more required properties are missing." });
+    } else {
+      const userId = username;
 
-    await db.query(selectUserQry, (err, result) => {
-      if (err || result.rowCount === 0) {
-        console.error("Error login user:", err);
-        res.status(400).json({ message: "Error login in user: " + err });
-        return;
-      } else {
-        bcrypt.compare(
-          password,
-          result.rows[0].password,
-          function (err, isMatch) {
-            if (isMatch) {
-              res
-                .status(200)
-                .json({ message: result.rows[0], isMatch: isMatch });
-            } else {
-              res
-                .status(200)
-                .json({ message: "Credential Error", isMatch: isMatch });
+      const selectUserQry = `
+              SELECT * FROM users WHERE userid='${userId}' ;
+          `;
+
+      await db.query(selectUserQry, (err, result) => {
+        if (err || result.rowCount === 0) {
+          console.error("Error login user:", err);
+          res.status(400).json({ message: "Error login in user: " + err });
+          return;
+        } else {
+          bcrypt.compare(
+            password,
+            result.rows[0].password,
+            function (err, isMatch) {
+              if (isMatch) {
+                res
+                  .status(200)
+                  .json({ message: result.rows[0], isMatch: isMatch });
+              } else {
+                res
+                  .status(200)
+                  .json({ message: "Credential Error", isMatch: isMatch });
+              }
             }
-          }
-        );
-      }
-    });
+          );
+        }
+      });
+    }
   } catch (err) {
     console.error(err.message);
     res.status(500).sendStatus("Server Error");
