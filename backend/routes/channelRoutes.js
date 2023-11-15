@@ -28,6 +28,8 @@ router.post("/", async (req, res) => {
         .status(400)
         .json({ error: "One or more required properties are missing." });
     } else {
+      // MAKE SURE CHATMATE IS IN USER TABLE
+
       const insertChannelQry = `INSERT INTO channel (channel_url, created_by, chatmate, channel_name )
     VALUES ('${channel_url}', '${created_by}', '${chatmate}' ,'${channel_name}');
 `;

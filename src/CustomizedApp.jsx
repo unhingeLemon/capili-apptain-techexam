@@ -1,21 +1,13 @@
 import React, { useState } from "react";
-import {
-  useChannelListContext,
-  ChannelListProvider,
-} from "@sendbird/uikit-react/ChannelList/context";
+import { useChannelListContext } from "@sendbird/uikit-react/ChannelList/context";
 import useSendbirdStateContext from "@sendbird/uikit-react/useSendbirdStateContext";
-import { useCreateChannelContext } from "@sendbird/uikit-react/CreateChannel/context";
-
-import ChannelListUI from "@sendbird/uikit-react/ChannelList/components/ChannelListUI";
 import sendbirdSelectors from "@sendbird/uikit-react/sendbirdSelectors";
 import { ChannelList, Channel, ChannelSettings } from "@sendbird/uikit-react";
-import CreateChannel from "@sendbird/uikit-react/CreateChannel";
-import ChannelListHeader from "@sendbird/uikit-react/ChannelList/components/ChannelListHeader";
-import AddChannel from "@sendbird/uikit-react/ChannelList/components/AddChannel";
+import axios from "axios";
 
-const AddComponent = () => {
+const AddComponent = ({ currentChanelUrl }) => {
   const [channelUrl, setChannelUrl] = useState("");
-
+  const API_LINK = process.env.REACT_APP_API_LINK;
   const globalStore = useSendbirdStateContext();
   const createChannel = sendbirdSelectors.getCreateGroupChannel(globalStore);
   const leaveChannel = sendbirdSelectors.getLeaveGroupChannel(globalStore);
@@ -64,8 +56,35 @@ const AddComponent = () => {
               setChannelUrl(channel._url);
               // console.log(channel);\
               getGroupChannel(channel._url)
-                .then((channel) => {
+                .then(async (channel) => {
                   console.log(channel);
+
+                  setCreateChannelData({
+                    channelName: "",
+                    userId: "",
+                  });
+
+                  // POST TO DB:
+
+                  try {
+                    const response = await axios.post(
+                      API_LINK + "api/channel/",
+                      {
+                        channel_url: channel.url,
+                        created_by: channel.creator.userId,
+                        chatmate: createChannelData.userId,
+                        channel_name: createChannelData.channelName,
+                      },
+                      {
+                        headers: {
+                          "Content-Type": "application/x-www-form-urlencoded",
+                        },
+                      }
+                    );
+                    console.log(response.data.message);
+                  } catch (error) {
+                    console.log(error);
+                  }
                 })
                 .catch((error) => console.warn(error));
             })
@@ -76,7 +95,7 @@ const AddComponent = () => {
       </button>
       <button
         onClick={() => {
-          leaveChannel(channelUrl)
+          leaveChannel(currentChanelUrl)
             .then(() => {
               setChannelUrl("");
             })
@@ -120,14 +139,11 @@ function CustomizedApp({}) {
     console.log(globalStore1);
   };
 
-  const createChannel = sendbirdSelectors.getCreateGroupChannel(globalStore);
-  const leaveChannel = sendbirdSelectors.getLeaveGroupChannel(globalStore);
-  const getGroupChannel = sendbirdSelectors.getGetGroupChannel(globalStore);
   return (
     <div className="channel-wrap">
       <div className="channel-list">
         <div style={{ width: "320px", height: "500px" }}>
-          <AddComponent></AddComponent>
+          <AddComponent currentChanelUrl={currentChannelUrl}></AddComponent>
           <ChannelList
             onChannelSelect={(channel) => {
               setCurrentChannel(channel);

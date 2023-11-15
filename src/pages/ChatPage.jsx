@@ -12,7 +12,6 @@ function ChatPage() {
   const [renderPage, setRenderPage] = useState(false);
 
   useEffect(() => {
-    console.log(state);
     if (state === null || state === undefined) {
       navigate("/login");
     } else {
