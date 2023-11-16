@@ -4,13 +4,15 @@ import useSendbirdStateContext from "@sendbird/uikit-react/useSendbirdStateConte
 import sendbirdSelectors from "@sendbird/uikit-react/sendbirdSelectors";
 import { ChannelList, Channel, ChannelSettings } from "@sendbird/uikit-react";
 import axios from "axios";
+import Header from "./components/Header";
+import LeaveChannelButton from "./components/LeaveChannelButton";
 
-const AddComponent = ({ currentChanelUrl }) => {
+const AddComponent = () => {
   const [channelUrl, setChannelUrl] = useState("");
+  const [error, setError] = useState("");
   const API_LINK = process.env.REACT_APP_API_LINK;
   const globalStore = useSendbirdStateContext();
   const createChannel = sendbirdSelectors.getCreateGroupChannel(globalStore);
-  const leaveChannel = sendbirdSelectors.getLeaveGroupChannel(globalStore);
   const getGroupChannel = sendbirdSelectors.getGetGroupChannel(globalStore);
 
   const [createChannelData, setCreateChannelData] = useState({
@@ -45,67 +47,78 @@ const AddComponent = ({ currentChanelUrl }) => {
         />
       </div>
       <button
-        onClick={() => {
+        onClick={async () => {
           // For TypeScript, use const params: GroupChannelCreateParams = {};
           const params = {
             name: createChannelData.channelName,
             invitedUserIds: [createChannelData.userId],
           };
-          createChannel(params)
-            .then((channel) => {
-              setChannelUrl(channel._url);
-              // console.log(channel);\
-              getGroupChannel(channel._url)
-                .then(async (channel) => {
-                  console.log(channel);
 
-                  setCreateChannelData({
-                    channelName: "",
-                    userId: "",
-                  });
+          // Check if chatmate exist:
+          try {
+            const response = await axios.post(
+              API_LINK + "api/user/check",
+              {
+                username: params.invitedUserIds[0],
+              },
+              {
+                headers: {
+                  "Content-Type": "application/x-www-form-urlencoded",
+                },
+              }
+            );
+            console.log(response.data.message);
 
-                  // POST TO DB:
+            // If exist create the channel:
+            createChannel(params)
+              .then((channel) => {
+                setChannelUrl(channel._url);
+                // console.log(channel);\
+                getGroupChannel(channel._url)
+                  .then(async (channel) => {
+                    console.log(channel);
 
-                  try {
-                    const response = await axios.post(
-                      API_LINK + "api/channel/",
-                      {
-                        channel_url: channel.url,
-                        created_by: channel.creator.userId,
-                        chatmate: createChannelData.userId,
-                        channel_name: createChannelData.channelName,
-                      },
-                      {
-                        headers: {
-                          "Content-Type": "application/x-www-form-urlencoded",
+                    setCreateChannelData({
+                      channelName: "",
+                      userId: "",
+                    });
+
+                    // POST TO DB:
+                    try {
+                      const response = await axios.post(
+                        API_LINK + "api/channel/",
+                        {
+                          channel_url: channel.url,
+                          created_by: channel.creator.userId,
+                          chatmate: createChannelData.userId,
+                          channel_name: createChannelData.channelName,
                         },
-                      }
-                    );
-                    console.log(response.data.message);
-                  } catch (error) {
-                    console.log(error);
-                  }
-                })
-                .catch((error) => console.warn(error));
-            })
-            .catch((error) => console.warn(error));
+                        {
+                          headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                          },
+                        }
+                      );
+                      console.log(response.data.message);
+                    } catch (error) {
+                      console.log(error);
+                    }
+                  })
+                  .catch((error) => console.warn(error));
+              })
+              .catch((error) => console.warn(error));
+          } catch (error) {
+            console.log(error);
+            setError("Error 404: Chatmate not found");
+          }
         }}
       >
         Create channel
       </button>
-      <button
-        onClick={() => {
-          leaveChannel(currentChanelUrl)
-            .then(() => {
-              setChannelUrl("");
-            })
-            .catch((error) => console.warn(error));
-        }}
-      >
-        Leave channel
-      </button>
+
       <br />
       {`Created channel is: ${channelUrl}`}
+      {`Error: ${error}`}
     </>
   );
 };
@@ -128,15 +141,15 @@ function CustomizedApp({}) {
   const hideSettingsBar = () => {
     channelChatDiv.style.width = "76%";
     channelChatDiv.style.cssFloat = "right";
-    const disconnect = sendbirdSelectors.getUpdateUserInfo(globalStore);
-    disconnect()
+    const getUser = sendbirdSelectors.getUpdateUserInfo(globalStore);
+    getUser()
       .then((res) => {
-        console.log(res);
+        console.log(res.plainProfileUrl, res.nickname, res.userId);
       })
       .catch((err) => {
         console.log(err);
       });
-    console.log(globalStore1);
+    // console.log(globalStore1);
   };
 
   return (
@@ -156,6 +169,7 @@ function CustomizedApp({}) {
             onProfileEditSuccess={(user) => {
               console.log(user);
             }}
+            renderHeader={Header}
           />
         </div>
       </div>
@@ -176,6 +190,7 @@ function CustomizedApp({}) {
               setShowSettings(false);
               hideSettingsBar();
             }}
+            renderLeaveChannel={LeaveChannelButton}
           />
         </div>
       )}

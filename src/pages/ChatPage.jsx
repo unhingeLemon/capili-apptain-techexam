@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import ProfileEditModal from "../components/ProfileEditModal";
 import SendbirdProvider from "@sendbird/uikit-react/SendbirdProvider";
 import "@sendbird/uikit-react/dist/index.css";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -23,10 +24,11 @@ function ChatPage() {
       {renderPage ? (
         <SendbirdProvider
           appId={APP_ID}
-          userId={state.user.userid}
+          userId={state.user.user_id}
           nickname={state.user.nickname}
         >
           <CustomizedApp />
+          {/* <ProfileEditModal /> */}
         </SendbirdProvider>
       ) : (
         <p>Error</p>

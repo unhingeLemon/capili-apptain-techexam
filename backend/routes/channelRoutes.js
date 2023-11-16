@@ -14,6 +14,7 @@ router.post("/", async (req, res) => {
   try {
     const { channel_url, created_by, chatmate, channel_name } = req.body;
 
+    // CHECK IF DATA IS EXIST
     if (
       channel_url === undefined ||
       created_by === undefined ||
@@ -28,12 +29,10 @@ router.post("/", async (req, res) => {
         .status(400)
         .json({ error: "One or more required properties are missing." });
     } else {
-      // MAKE SURE CHATMATE IS IN USER TABLE
-
+      // INSERT CHANNEL OBJ TO CHANNEL TABLE
       const insertChannelQry = `INSERT INTO channel (channel_url, created_by, chatmate, channel_name )
-    VALUES ('${channel_url}', '${created_by}', '${chatmate}' ,'${channel_name}');
-`;
-
+          VALUES ('${channel_url}', '${created_by}', '${chatmate}' ,'${channel_name}');
+      `;
       db.query(insertChannelQry, async (err, result) => {
         if (err) {
           console.error("Error inserting channel:", err);

@@ -13,6 +13,8 @@ const router = express.Router();
 router.post("/register", async (req, res) => {
   try {
     const { username, password, nickname } = req.body;
+
+    // CHECK IF DATA IS EXIST
     if (
       username === undefined ||
       password === undefined ||
@@ -26,10 +28,14 @@ router.post("/register", async (req, res) => {
         .json({ error: "One or more required properties are missing." });
     } else {
       const userId = username;
+
+      // Hash the password before inserting to DB
       bcrypt.hash(password, 10, function (err, hash) {
         if (err) console.log(err);
+
+        // Insert registered user into db
         const insertUserQuery = `
-            INSERT INTO users (userId, password,nickname )
+            INSERT INTO users (user_id, password,nickname )
             VALUES ('${userId}', '${hash}', '${nickname}');
         `;
 
@@ -39,6 +45,8 @@ router.post("/register", async (req, res) => {
             res.status(400).json({ message: "Error inserting user: " + err });
           } else {
             console.log("User inserted successfully");
+
+            // Register the new user to the sendbird API
             const sendBirdResult = await registerToSendBird(
               userId,
               nickname,
@@ -48,7 +56,7 @@ router.post("/register", async (req, res) => {
             if (sendBirdResult === undefined) {
               res.status(400).json({ message: "User Already Exist" });
             } else {
-              console.log(sendBirdResult);
+              // console.log(sendBirdResult);
               res.status(200).json({ message: "User inserted successfully" });
             }
           }
@@ -60,6 +68,7 @@ router.post("/register", async (req, res) => {
     res.status(500).sendStatus("Server Error");
   }
 });
+
 // @route   POST api/auth/login
 // @desc    login a user
 // @access  Public
@@ -81,10 +90,11 @@ router.post("/login", async (req, res) => {
       const userId = username;
 
       const selectUserQry = `
-              SELECT * FROM users WHERE userid='${userId}' ;
+              SELECT * FROM users WHERE user_id='${userId}' ;
           `;
 
       await db.query(selectUserQry, (err, result) => {
+        // Check if the user was found
         if (err || result.rowCount === 0) {
           console.error("Error login user:", err);
           res.status(400).json({ message: "Error login in user: " + err });
@@ -116,11 +126,14 @@ router.post("/login", async (req, res) => {
 
 const registerToSendBird = async (userId, nickname, req, res) => {
   try {
+    // Access credentials:
     const apiUrl = process.env.SENDBIRD_API_URL;
     const API_KEY = process.env.SENDBIRD_API_TOKEN;
+
+    // Required headers for sendbird
     const headers = {
       "Content-Type": "application/json",
-      "Api-Token": API_KEY, // Replace with your actual token
+      "Api-Token": API_KEY,
     };
 
     const jsonData = {
@@ -130,6 +143,7 @@ const registerToSendBird = async (userId, nickname, req, res) => {
         "https://sendbird.com/main/img/profiles/profile_05_512px.png",
     };
 
+    // Sendbird API only accept JSON on string
     const response = await axios.post(apiUrl, JSON.stringify(jsonData), {
       headers,
     });
@@ -138,8 +152,7 @@ const registerToSendBird = async (userId, nickname, req, res) => {
 
     return apiData;
   } catch (error) {
-    console.error("Error making API call:");
-    // res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error making API call to sendbird:", error);
   }
 };
 
