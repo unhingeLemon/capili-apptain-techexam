@@ -1,12 +1,88 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { Modal } from "react-bootstrap";
+import axios from "axios";
 
-function ProfileEditModal() {
-  const profile_img_url =
-    "https://sendbird.com/main/img/profiles/profile_05_512px.png";
+function ProfileEditModal({ showProfileEdit, setShowProfileEdit, userInfo }) {
+  const [profile_img_url, setProfile_img_url] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [profileFile, setProfileFile] = useState(null);
+
+  const fileInputRef = useRef(null);
+
+  const handleNicknameChange = (e) => {
+    setNickname(e.target.value);
+  };
+
+  const handleProfileFileChange = (e) => {
+    // Assuming you have an input of type 'file' for profile image upload
+    const file = e.target.files[0];
+    console.log(file);
+    setProfileFile(file);
+    if (file) {
+      // Create a URL for the image
+      const imageUrl = URL.createObjectURL(file);
+      setProfile_img_url(imageUrl);
+    }
+  };
+
+  const handleUploadClick = () => {
+    // Trigger click on the hidden file input
+    fileInputRef.current.click();
+  };
+
+  const onUpdateProfile = async (e) => {
+    e.preventDefault();
+    console.log("Update Progile");
+    const apiUrl = `https://api-${process.env.REACT_APP_SENDBIRD_APP_ID}.sendbird.com/v3/users/${userInfo.userId}`;
+    const backendApiUrl = process.env.REACT_APP_API_LINK;
+
+    // Prepare form data for file upload
+    const formData = new FormData();
+    formData.append("profile_file", profileFile);
+    formData.append("nickname", nickname);
+
+    try {
+      const response = await axios.put(apiUrl, formData, {
+        headers: {
+          "Api-Token": process.env.REACT_APP_SENDBIRD_API_TOKEN,
+          "Content-Type": "multipart/form-data", // Make sure to set the correct content type for FormData
+        },
+      });
+
+      console.log(response);
+      const newStoredUser = {
+        nickname: response.data.nickname,
+        userId: response.data.user_id,
+        profileUrl: response.data.profile_url,
+      };
+
+      // UPDATE THE DATABSE
+      const res = await axios.put(
+        backendApiUrl + "api/user/update",
+        newStoredUser,
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        }
+      );
+      console.log(res);
+      localStorage.setItem("userInfo", JSON.stringify(newStoredUser));
+      window.location.reload();
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+  useEffect(() => {
+    setNickname(userInfo.nickname);
+    setProfile_img_url(userInfo.profileUrl);
+  }, []);
   return (
-    <div id="sendbird-modal-root">
-      <div className="sendbird-modal">
-        <div className="sendbird-modal__content">
+    <>
+      {/* <Modal show={show} onHide={handleClose}> */}
+      <Modal show={showProfileEdit}>
+        <div className="sendbird-modal__content" style={{ width: "100%" }}>
           <div className="sendbird-modal__header">
             <span className="sendbird-label sendbird-label--h-1 sendbird-label--color-onbackground-1">
               My profile
@@ -14,7 +90,11 @@ function ProfileEditModal() {
           </div>
           <div className="sendbird-modal__body">
             <span className="sendbird-label sendbird-label--subtitle-1 sendbird-label--color-onbackground-2">
-              <form className="sendbird-edit-user-profile">
+              <form
+                id="updateProfileFormId"
+                onSubmit={onUpdateProfile}
+                className="sendbird-edit-user-profile"
+              >
                 <section className="sendbird-edit-user-profile__img">
                   <span className="sendbird-input-label sendbird-label sendbird-label--caption-3 sendbird-label--color-onbackground-1">
                     Profile image
@@ -61,11 +141,14 @@ function ProfileEditModal() {
                     type="file"
                     accept="image/gif, image/jpeg, image/png"
                     style={{ display: "none" }}
+                    ref={fileInputRef}
+                    onChange={handleProfileFileChange}
                   />
                   <div
                     className="sendbird-edit-user-profile__img__avatar-button sendbird-color--onbackground-1 sendbird-textbutton--not-underline "
                     role="button"
                     tabIndex="0"
+                    onClick={handleUploadClick}
                   >
                     <span className="sendbird-label sendbird-label--button-1 sendbird-label--color-primary">
                       Upload
@@ -79,9 +162,11 @@ function ProfileEditModal() {
                   <div className="sendbird-input">
                     <input
                       className="sendbird-input__input"
-                      name="sendbird-edit-user-profile__name__input"
+                      name="nickname"
                       required
-                      value="Mark"
+                      type="text"
+                      value={nickname}
+                      onChange={handleNicknameChange}
                     />
                   </div>
                 </section>
@@ -105,6 +190,7 @@ function ProfileEditModal() {
             <button
               className="sendbird-button sendbird-button--secondary sendbird-button--big"
               type="button"
+              onClick={() => setShowProfileEdit(false)}
             >
               <span className="sendbird-button__text sendbird-label sendbird-label--button-1 sendbird-label--color-oncontent-1">
                 <span className="sendbird-label sendbird-label--button-1 sendbird-label--color-onbackground-1">
@@ -115,13 +201,18 @@ function ProfileEditModal() {
             <button
               className="sendbird-button sendbird-button--primary sendbird-button--big"
               type="button"
+              form="updateProfileFormId"
+              onClick={onUpdateProfile}
             >
               <span className="sendbird-button__text sendbird-label sendbird-label--button-1 sendbird-label--color-oncontent-1">
                 Save
               </span>
             </button>
           </div>
-          <div className="sendbird-modal__close">
+          <div
+            className="sendbird-modal__close "
+            onClick={() => setShowProfileEdit(false)}
+          >
             <button
               className="sendbird-iconbutton"
               type="button"
@@ -153,8 +244,8 @@ function ProfileEditModal() {
           </div>
         </div>
         <div className="sendbird-modal__backdrop false"></div>
-      </div>
-    </div>
+      </Modal>
+    </>
   );
 }
 

@@ -30,37 +30,35 @@ router.post("/register", async (req, res) => {
       const userId = username;
 
       // Hash the password before inserting to DB
-      bcrypt.hash(password, 10, function (err, hash) {
+      bcrypt.hash(password, 10, async function (err, hash) {
         if (err) console.log(err);
 
-        // Insert registered user into db
-        const insertUserQuery = `
-            INSERT INTO users (user_id, password,nickname )
-            VALUES ('${userId}', '${hash}', '${nickname}');
-        `;
-
-        db.query(insertUserQuery, async (err, result) => {
-          if (err) {
-            console.error("Error inserting user:", err);
-            res.status(400).json({ message: "Error inserting user: " + err });
-          } else {
-            console.log("User inserted successfully");
-
-            // Register the new user to the sendbird API
-            const sendBirdResult = await registerToSendBird(
-              userId,
-              nickname,
-              req,
-              res
-            );
-            if (sendBirdResult === undefined) {
-              res.status(400).json({ message: "User Already Exist" });
+        // Register the new user to the sendbird API
+        const sendBirdResult = await registerToSendBird(
+          userId,
+          nickname,
+          req,
+          res
+        );
+        if (sendBirdResult === undefined) {
+          res.status(400).json({ message: "User Already Exist" });
+        } else {
+          // console.log(sendBirdResult);
+          // Insert registered user into db
+          const insertUserQuery = `
+         INSERT INTO users (user_id, password,nickname,profile_url )
+         VALUES ('${userId}', '${hash}', '${nickname}', '${sendBirdResult.data.profile_url}');
+     `;
+          db.query(insertUserQuery, async (err, result) => {
+            if (err) {
+              console.error("Error inserting user:", err);
+              res.status(400).json({ message: "Error inserting user: " + err });
             } else {
-              // console.log(sendBirdResult);
+              console.log("User inserted successfully");
               res.status(200).json({ message: "User inserted successfully" });
             }
-          }
-        });
+          });
+        }
       });
     }
   } catch (err) {
@@ -148,7 +146,7 @@ const registerToSendBird = async (userId, nickname, req, res) => {
       headers,
     });
 
-    const apiData = response.data;
+    const apiData = response;
 
     return apiData;
   } catch (error) {

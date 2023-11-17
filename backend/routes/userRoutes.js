@@ -1,6 +1,7 @@
 import express from "express";
 import db from "../config/db.js";
 import dotenv from "dotenv";
+import axios from "axios";
 dotenv.config();
 
 const router = express.Router();
@@ -46,12 +47,12 @@ router.post("/check", async (req, res) => {
 // @access  Public
 router.put("/update", async (req, res) => {
   try {
-    const { username, profileUrl, nickname } = req.body;
+    const { userId, profileUrl, nickname } = req.body;
 
     // Check if any of the required properties is undefined or null
     if (
-      username === undefined ||
-      username === null ||
+      userId === undefined ||
+      userId === null ||
       profileUrl === undefined ||
       profileUrl === null ||
       nickname === undefined ||
@@ -61,8 +62,6 @@ router.put("/update", async (req, res) => {
         .status(400)
         .json({ error: "One or more required properties are missing." });
     } else {
-      const userId = username;
-
       const updateUserQry = `
               UPDATE users 
               SET profile_url = '${profileUrl}', nickname = '${nickname}'

@@ -23,14 +23,63 @@ sendbird-button sendbird-button--primary sendbird-button--big {
   display: none;
 } */
 
-.sendbird-image-renderer__image {
-  width: 100%;
-  min-width: 32px;
-  max-width: 400px;
-  height: 32px;
-  position: absolute;
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: cover;
-  background-image: url(https://sendbird.com/main/img/profiles/profile_05_512px.png);
+.add-channel-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-page {
+  display: flex;
+  flex-direction: column;
+  width: 30%;
+  margin: auto;
+  margin-top: 15vh;
+  /* align-items: center; */
+  justify-content: center;
+}
+
+.login-page > h1 {
+  text-align: center;
+}
+
+.login-page > a {
+  width: 50%;
+
+  margin: 20px auto;
+  /* margin: 20px; */
+}
+
+.form-login {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-login > button {
+  width: 50%;
+
+  margin: 20px auto;
+}
+.home-page {
+  display: flex;
+  flex-direction: column;
+  width: 30%;
+  margin: auto;
+  margin-top: 15vh;
+  /* align-items: center; */
+  justify-content: center;
+}
+
+.home-page > h1 {
+  text-align: center;
+}
+
+.home-page > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-page > div > a {
+  width: 50%;
+
+  margin: 10px auto;
 }

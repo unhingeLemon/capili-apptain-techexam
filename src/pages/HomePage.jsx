@@ -1,13 +1,16 @@
 import React from "react";
-
 function HomePage(props) {
   return (
-    <div>
+    <div className="home-page">
       <h1>Welcome!</h1>
 
       <div>
-        <a href="./login">login</a>
-        <a href="./register">register</a>
+        <a href="./login" className="btn btn-primary">
+          Login
+        </a>
+        <a href="./register" className="btn btn-primary">
+          Register
+        </a>
       </div>
     </div>
   );

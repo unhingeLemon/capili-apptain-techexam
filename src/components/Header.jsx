@@ -1,16 +1,53 @@
-import react from "react";
+import React, { useState, useEffect } from "react";
+import AddChannelModal from "./AddChannelModal";
+import ProfileEditModal from "./ProfileEditModal";
 
-function Header() {
-  const profile_img_url =
-    "https://sendbird.com/main/img/profiles/profile_05_512px.png";
-  const handleClick = () => {
+function Header({ currentChannelUrl }) {
+  const [userInfo, setUserInfo] = useState({
+    nickname: "",
+    userId: "",
+    profileUrl: "",
+  });
+
+  useEffect(() => {
+    var storedUser = localStorage.getItem("userInfo");
+    storedUser = JSON.parse(storedUser);
+    // console.log(storedUser);
+    setUserInfo(storedUser);
+  }, []);
+
+  const handleProfileClick = () => {
     console.log("Profile Edit");
+    setShowProfileEdit(true);
   };
+
+  const [show, setShow] = useState(false);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const handleShow = () => {
+    setShow(true);
+    console.log("asjkdhajksd");
+  };
+  const handleClose = () => setShow(false);
   return (
     <div>
+      {showProfileEdit && (
+        <ProfileEditModal
+          showProfileEdit={showProfileEdit}
+          setShowProfileEdit={setShowProfileEdit}
+          userInfo={userInfo}
+        />
+      )}
+      <AddChannelModal
+        currentChannelUrl={currentChannelUrl}
+        show={show}
+        setShow={setShow}
+      />
       <div className="sendbird-channel-list__header">
         <div className="sendbird-channel-header sendbird-channel-header--allow-edit">
-          <div className="sendbird-channel-header__title" onClick={handleClick}>
+          <div
+            className="sendbird-channel-header__title"
+            onClick={handleProfileClick}
+          >
             <div className="sendbird-channel-header__title__left">
               <div
                 className=" sendbird-avatar"
@@ -38,23 +75,23 @@ function Header() {
                       backgroundRepeat: "no-repeat",
                       backgroundPosition: "center center",
                       backgroundSize: "cover",
-                      backgroundImage: `url("${profile_img_url}")`,
+                      backgroundImage: `url("${userInfo.profileUrl}")`,
                     }}
                   ></div>
                   <img
                     className="sendbird-image-renderer__hidden-image-loader"
-                    src={profile_img_url}
-                    alt="Mark"
+                    src={userInfo.profileUrl}
+                    alt="img"
                   />
                 </div>
               </div>
             </div>
             <div className="sendbird-channel-header__title__right">
               <span className="sendbird-channel-header__title__right__name sendbird-label sendbird-label--subtitle-2 sendbird-label--color-onbackground-1">
-                Mark
+                {userInfo.nickname}
               </span>
               <span className="sendbird-channel-header__title__right__user-id sendbird-label sendbird-label--body-2 sendbird-label--color-onbackground-2">
-                LABEL
+                {userInfo.userId}
               </span>
             </div>
           </div>
@@ -63,7 +100,7 @@ function Header() {
               className="sendbird-iconbutton"
               type="button"
               style={{ height: "32px", width: "32px" }}
-              onClick={() => console.log("CHANNEL ADD HERE")}
+              onClick={handleShow}
             >
               <span className="sendbird-iconbutton__inner">
                 <div

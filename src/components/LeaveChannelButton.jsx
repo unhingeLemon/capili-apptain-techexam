@@ -1,8 +1,27 @@
 import React from "react";
-const LeaveChannelButton = () => {
+import sendbirdSelectors from "@sendbird/uikit-react/sendbirdSelectors";
+import useSendbirdStateContext from "@sendbird/uikit-react/useSendbirdStateContext";
+
+const LeaveChannelButton = ({ setShowSettings, hideSettingsBar }) => {
+  const globalStore = useSendbirdStateContext();
+  const leaveChannel = sendbirdSelectors.getLeaveGroupChannel(globalStore);
+
+  const handleOnLeaveChannel = () => {
+    // console.log(currentChannelUrl);
+    const currentChannelUrl = localStorage.getItem("currentChannelUrl");
+    leaveChannel(currentChannelUrl)
+      .then(() => {
+        // console.log(globalStore);
+        console.log("Leave Channel");
+        setShowSettings(false);
+        hideSettingsBar();
+      })
+      .catch((error) => console.log(error));
+  };
+
   return (
     <div
-      onClick={() => console.log("Leave button clicked")}
+      onClick={handleOnLeaveChannel}
       className="sendbird-channel-settings__panel-item sendbird-channel-settings__leave-channel"
       role="button"
       tabIndex="0"
