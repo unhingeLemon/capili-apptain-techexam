@@ -64,16 +64,25 @@ function CustomizedApp({ userId }) {
   return (
     <div className="channel-wrap">
       <div className="channel-list">
-        <a
-          href="/"
-          className="btn btn-light"
+        <div
           style={{
-            margin: "0 auto",
-            width: "100px",
+            display: "flex",
+            justifyContent: "center",
+            width: "100%",
           }}
         >
-          Home
-        </a>
+          <a
+            href="/"
+            className="btn btn-light"
+            style={{
+              margin: "0 auto",
+              width: "100px",
+            }}
+          >
+            Home
+          </a>
+        </div>
+
         <div style={{ width: "320px" }}>
           <ChannelList
             onChannelSelect={(channel) => {
