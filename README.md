@@ -1,4 +1,4 @@
-#How to run the APP:
+# How to run the APP:
 
 ## Before running the app
 
